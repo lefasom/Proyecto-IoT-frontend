@@ -4,6 +4,7 @@ import img2 from "./assets/guardar.png";
 
 function App() {
   const [messages, setMessages] = useState([]);
+  const [lastMessage, setLastMessage] = useState(""); // <-- nuevo estado para el último msg
   const [input, setInput] = useState("");
   const [targetId, setTargetId] = useState("esp32_1");
   const [status, setStatus] = useState("Desconectado");
@@ -26,7 +27,12 @@ function App() {
       const data = JSON.parse(event.data);
       const timestamp = new Date().toLocaleTimeString();
       const formattedMsg = `[${timestamp}] ${data.from} → ${myId} : ${data.msg}`;
+
+      // Guardamos en el historial completo
       setMessages((prev) => [...prev, formattedMsg]);
+
+      // Guardamos solamente el último mensaje (solo el contenido `msg`)
+      setLastMessage(data.msg);
     };
 
     return () => socket.close();
@@ -48,6 +54,10 @@ function App() {
           msg,
         })
       );
+
+      // actualizamos también el último mensaje (cuando yo envío)
+      setLastMessage(msg);
+
       setInput(""); // limpiar input solo si fue desde el campo
     }
   };
@@ -65,7 +75,7 @@ function App() {
     >
       <h1>React WebSocket con IDs</h1>
 
-      {/* Estado y mensajes */}
+      {/* Estado y mensajes (display con historial) */}
       <div
         style={{
           backgroundColor: "#111",
@@ -87,6 +97,25 @@ function App() {
         </div>
       </div>
 
+      {/* Segunda pantalla: solo último mensaje */}
+      <div
+        style={{
+          backgroundColor: "#222",
+          fontFamily: "monospace",
+          width: "360px",
+          height: "80px",
+          border: "1px solid #f0f",
+          padding: "10px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "#f0f",
+          fontSize: "18px",
+        }}
+      >
+        {lastMessage || "Esperando mensaje..."}
+      </div>
+
       {/* Selección de destino */}
       <div>
         <label>ESP32 destino: </label>
@@ -104,7 +133,14 @@ function App() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Escribe un mensaje"
         />
-        <button onClick={() => sendMessage(input)}>Enviar</button>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            sendMessage(input);
+          }}
+        >
+          Enviar
+        </button>
       </div>
 
       {/* Botones touch */}
@@ -116,9 +152,14 @@ function App() {
         }}
       >
         {/* Botón Agregar huella */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+        >
           <button
-            onClick={() => sendMessage("agregar_huella")}
+            onClick={(e) => {
+              e.preventDefault();
+              sendMessage("agregar_huella");
+            }}
             disabled={status !== "Conectado"}
             style={{
               width: "60px",
@@ -152,9 +193,14 @@ function App() {
         </div>
 
         {/* Botón Detectar huella */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+        >
           <button
-            onClick={() => sendMessage("detectar_huella")}
+            onClick={(e) => {
+              e.preventDefault();
+              sendMessage("detectar_huella");
+            }}
             disabled={status !== "Conectado"}
             style={{
               width: "60px",
