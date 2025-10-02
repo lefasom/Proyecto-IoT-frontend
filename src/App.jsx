@@ -13,7 +13,7 @@ function App() {
   const myId = "react-1"; // ID de este React
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:3000");
+    const socket = new WebSocket("wss://proyecto-iot-backend-production.up.railway.app");
     socketRef.current = socket;
 
     socket.onopen = () => {
